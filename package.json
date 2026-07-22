@@ -1,0 +1,32 @@
+{
+  "name": "@561-group/x402-boundary-reference",
+  "version": "0.1.0",
+  "description": "Open reference implementation for a bounded x402 v2 Express payment boundary and unpaid public challenge inspection.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./observe": "./src/observe-public-resource.mjs"
+  },
+  "scripts": {
+    "check": "node --check src/index.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  },
+  "dependencies": {
+    "@x402/core": "2.19.0",
+    "@x402/evm": "2.19.0",
+    "@x402/express": "2.19.0",
+    "express": "5.2.1"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "x-agentic-metro-enterprise": {
+    "node-id": "x402-boundary-reference",
+    "organizational-kind": "open-reference-implementation",
+    "owners": ["x402-services-section"],
+    "admission": "explicit EVM CAIP-2 network, exact route set, and separately selected facilitator",
+    "refusal": "credentials, private keys, implicit network selection, custom payment envelopes, settlement execution, custody, or customer operation authority"
+  }
+}
