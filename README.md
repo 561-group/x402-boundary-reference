@@ -7,6 +7,16 @@ An Apache-2.0 reference implementation for two things only:
 
 The caller supplies the route set, CAIP-2 network, price, payee, and separately hired facilitator. This package holds no key, account, customer record, settlement ledger, or hosted operation.
 
+## Public product and operated-node companion
+
+This Apache-2.0 reference is published by the
+[`561-group` GitHub organization](https://github.com/561-group), not a
+personal account. Its companion paid product is the Metered RMN Inference node
+listed at [`market.561.group`](https://market.561.group/): the code is free to
+run or adapt, while the public node sells settled execution on its advertised
+chains. The node's own x402 challenge is authoritative for price, chain, and
+payee policy.
+
 The inspection helper intentionally requires a caller-supplied **egress-safe**
 fetch capability. It does not use ambient process network access to resolve or
 follow arbitrary Internet DNS; the hiring enterprise owns DNS, SSRF, and
