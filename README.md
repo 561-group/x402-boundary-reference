@@ -17,6 +17,10 @@ run or adapt, while the public node sells settled execution on its advertised
 chains. The node's own x402 challenge is authoritative for price, chain, and
 payee policy.
 
+The 561 Group also accepts sponsorship for the public research and reference
+layer. Current policy and the Base USDC sponsorship route are published at the
+market; sponsorship is distinct from a paid-node request.
+
 The inspection helper intentionally requires a caller-supplied **egress-safe**
 fetch capability. It does not use ambient process network access to resolve or
 follow arbitrary Internet DNS; the hiring enterprise owns DNS, SSRF, and
