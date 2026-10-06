@@ -5,6 +5,7 @@ import { createExactEvmPaymentBoundary, observePublicX402Resource, publicHttpsUr
 
 const NETWORK = "eip155:84532";
 const PAY_TO = "0x0000000000000000000000000000000000000001";
+const ASSET = "0x0000000000000000000000000000000000000002";
 const facilitator = { async getSupported() { return { kinds: [{ x402Version: 2, scheme: "exact", network: NETWORK }], extensions: [], signers: {} }; }, async verify() { throw new Error("unpaid test must not verify"); }, async settle() { throw new Error("unpaid test must not settle"); } };
 
 test("constructs an official x402 v2 exact-EVM challenge without payment", async () => {
@@ -26,4 +27,31 @@ test("refuses implicit networks, custom schemes, credentials, and local observat
 
 test("refuses ambient network discovery without an explicit egress-safe provider", async () => {
   await assert.rejects(observePublicX402Resource({ resourceUrl: "https://example.com/value" }), /explicit egress-safe fetch implementation/u);
+});
+
+test("public observer refuses non-exact x402 alternatives", async () => {
+  const resourceUrl = "https://example.com/value";
+  const paymentRequired = {
+    x402Version: 2,
+    error: "Payment required",
+    resource: { url: resourceUrl, description: "test resource", mimeType: "application/json" },
+    accepts: [{
+      scheme: "batch-settlement",
+      network: NETWORK,
+      amount: "1",
+      asset: ASSET,
+      payTo: PAY_TO,
+      maxTimeoutSeconds: 60,
+      extra: {},
+    }],
+    extensions: {},
+  };
+  const fetchImpl = async () => new Response(null, {
+    status: 402,
+    headers: { "payment-required": Buffer.from(JSON.stringify(paymentRequired)).toString("base64") },
+  });
+  await assert.rejects(
+    observePublicX402Resource({ resourceUrl, fetchImpl }),
+    /must use the exact x402 scheme/u,
+  );
 });
