@@ -1,7 +1,7 @@
 {
   "name": "@561-group/x402-boundary-reference",
-  "version": "0.2.0",
-  "description": "Open reference implementation for a bounded x402 v2 Express payment boundary, Bazaar discovery metadata, and unpaid public challenge inspection.",
+  "version": "0.3.0",
+  "description": "Open reference implementation for bounded multi-product x402 v2 Express sellers, Bazaar discovery metadata, and unpaid public challenge inspection.",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "./observe": "./src/observe-public-resource.mjs"
   },
   "scripts": {
-    "check": "node --check src/index.mjs && node --check src/bazaar.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs && node --check test/bazaar.test.mjs",
+    "check": "node --check src/index.mjs && node --check src/bazaar.mjs && node --check src/catalogue.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs && node --check test/bazaar.test.mjs && node --check test/catalogue.test.mjs",
     "test": "node --test",
     "verify": "npm run check && npm test"
   },
