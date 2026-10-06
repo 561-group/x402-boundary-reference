@@ -1,7 +1,7 @@
 {
   "name": "@561-group/x402-boundary-reference",
-  "version": "0.1.0",
-  "description": "Open reference implementation for a bounded x402 v2 Express payment boundary and unpaid public challenge inspection.",
+  "version": "0.2.0",
+  "description": "Open reference implementation for a bounded x402 v2 Express payment boundary, Bazaar discovery metadata, and unpaid public challenge inspection.",
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
@@ -9,7 +9,7 @@
     "./observe": "./src/observe-public-resource.mjs"
   },
   "scripts": {
-    "check": "node --check src/index.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs",
+    "check": "node --check src/index.mjs && node --check src/bazaar.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs && node --check test/bazaar.test.mjs",
     "test": "node --test",
     "verify": "npm run check && npm test"
   },
@@ -17,7 +17,8 @@
     "@x402/core": "2.19.0",
     "@x402/evm": "2.19.0",
     "@x402/express": "2.19.0",
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "@x402/extensions": "2.19.0"
   },
   "engines": {
     "node": ">=22.18"
@@ -25,8 +26,10 @@
   "x-agentic-metro-enterprise": {
     "node-id": "x402-boundary-reference",
     "organizational-kind": "open-reference-implementation",
-    "owners": ["x402-services-section"],
-    "admission": "explicit EVM CAIP-2 network, exact route set, and separately selected facilitator",
-    "refusal": "credentials, private keys, implicit network selection, custom payment envelopes, settlement execution, custody, or customer operation authority"
+    "owners": [
+      "x402-services-section"
+    ],
+    "admission": "explicit EVM CAIP-2 network, exact route set, separately selected facilitator, and optional official Bazaar discovery declaration",
+    "refusal": "credentials, private keys, implicit network selection, custom payment envelopes, settlement execution, custody, customer operation authority, or hand-rolled discovery schemas"
   }
 }
