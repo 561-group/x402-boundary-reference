@@ -2,7 +2,9 @@ import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 
-export { observePublicX402Resource, publicHttpsUrl } from "./observe-public-resource.mjs";\nexport { withBazaarDiscovery } from "./bazaar.mjs";\nexport { catalogueExactEvmProducts } from "./catalogue.mjs";
+export { observePublicX402Resource, publicHttpsUrl } from "./observe-public-resource.mjs";
+export { withBazaarDiscovery } from "./bazaar.mjs";
+export { catalogueExactEvmProducts } from "./catalogue.mjs";
 
 function explicitEvmNetwork(value) {
   if (!/^eip155:[1-9][0-9]*$/u.test(value ?? "")) throw new TypeError("network must be one explicit EVM CAIP-2 identifier");
