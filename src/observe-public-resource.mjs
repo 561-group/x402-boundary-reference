@@ -24,16 +24,17 @@ export function publicHttpsUrl(value) {
 }
 
 function acceptance(value, index) {
-  if (!["exact", "batch-settlement"].includes(value?.scheme)) throw new TypeError(`accepts[${index}] uses an unsupported x402 scheme`);
-  if (!EVM_NETWORK.test(value.network) || !UINT.test(value.amount) || BigInt(value.amount) === 0n || !EVM_ADDRESS.test(value.payTo) || (value.asset !== "native" && !EVM_ADDRESS.test(value.asset)) || !Number.isSafeInteger(value.maxTimeoutSeconds) || value.maxTimeoutSeconds <= 0) throw new TypeError(`accepts[${index}] is not one valid EVM x402 alternative`);
+  if (value?.scheme !== "exact") throw new TypeError(`accepts[${index}] must use the exact x402 scheme`);
+  if (!EVM_NETWORK.test(value.network) || !UINT.test(value.amount) || BigInt(value.amount) === 0n || !EVM_ADDRESS.test(value.payTo) || (value.asset !== "native" && !EVM_ADDRESS.test(value.asset)) || !Number.isSafeInteger(value.maxTimeoutSeconds) || value.maxTimeoutSeconds <= 0) throw new TypeError(`accepts[${index}] is not one valid EVM x402 exact alternative`);
   return Object.freeze({ ...value, asset: value.asset === "native" ? "native" : value.asset.toLowerCase(), payTo: value.payTo.toLowerCase() });
 }
 
 /**
- * Inspect a public x402 v2 challenge without credentials, payment, signing,
- * settlement, redirect following, or consumption of the protected response body.
- * The caller MUST supply the egress-safe fetch capability: this package never
- * resolves and follows arbitrary Internet DNS through ambient process network.
+ * Inspect a public x402 v2 exact-EVM challenge without credentials, payment,
+ * signing, settlement, redirect following, or consumption of the protected
+ * response body. The caller MUST supply the egress-safe fetch capability: this
+ * package never resolves and follows arbitrary Internet DNS through ambient
+ * process network.
  */
 export async function observePublicX402Resource({ resourceUrl, method = "GET", fetchImpl, timeoutMs = 10_000, signal } = {}) {
   const url = publicHttpsUrl(resourceUrl);
