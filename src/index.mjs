@@ -1,6 +1,7 @@
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { bazaarResourceServerExtension } from "@x402/extensions/bazaar";
 
 export { observePublicX402Resource, publicHttpsUrl } from "./observe-public-resource.mjs";
 export { withBazaarDiscovery } from "./bazaar.mjs";
@@ -32,7 +33,7 @@ export function createExactEvmPaymentBoundary({ network, routes, facilitatorUrl,
     throw new TypeError("facilitatorUrl is required when no facilitatorClient is supplied");
   }
   const facilitator = facilitatorClient ?? new HTTPFacilitatorClient({ url: facilitatorUrl });
-  const resourceServer = new x402ResourceServer(facilitator).register(selectedNetwork, new ExactEvmScheme());
+  const resourceServer = new x402ResourceServer(facilitator).register(selectedNetwork, new ExactEvmScheme()).registerExtension(bazaarResourceServerExtension);
   if (afterSettle !== undefined) resourceServer.onAfterSettle(afterSettle);
   return Object.freeze({ network: selectedNetwork, resourceServer, middleware: paymentMiddleware(exactRouteSet(routes), resourceServer) });
 }

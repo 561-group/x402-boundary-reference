@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import express from "express";
+import { validateAndExtract, validateDiscoveryExtensionSpec } from "@x402/extensions/bazaar";
 import {
   createExactEvmPaymentBoundary,
   withBazaarDiscovery,
@@ -101,4 +102,27 @@ test("Bazaar helper refuses catalog drift", () => {
       ),
     /unknown route/u,
   );
+});
+
+test("the official Bazaar server extension enriches dynamic paths and their schema", async () => {
+  const routes = withBazaarDiscovery({ "GET /astronomy/:date": {
+    accepts: [{ scheme: "exact", network: NETWORK, price: "$0.04", payTo: PAY_TO }],
+  } }, { "GET /astronomy/:date": { method: "GET", input: {} } });
+  routes["GET /astronomy/:date"].extensions.bazaar.routeTemplate = "/astronomy/:date";
+  const boundary = createExactEvmPaymentBoundary({ network: NETWORK, facilitatorClient: facilitator, routes });
+  const app = express(); app.use(boundary.middleware);
+  let executed = false;
+  app.get("/astronomy/:date", (_request, response) => { executed = true; response.json({ value: "protected" }); });
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise(resolve => server.once("listening", resolve));
+  try {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/astronomy/2026-10-13`);
+    const challenge = JSON.parse(Buffer.from(response.headers.get("payment-required"), "base64").toString("utf8"));
+    assert.equal(response.status, 402); assert.equal(executed, false);
+    const extension = challenge.extensions.bazaar;
+    assert.equal(extension.routeTemplate, "/astronomy/:date");
+    assert.equal(extension.info.input.pathParams.date, "2026-10-13");
+    assert.equal(validateDiscoveryExtensionSpec(extension).valid, true);
+    assert.equal(validateAndExtract(extension).valid, true);
+  } finally { await new Promise(resolve => server.close(resolve)); }
 });

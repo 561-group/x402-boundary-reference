@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { decodePaymentRequiredHeader } from "@x402/core/http";
 import { validatePaymentRequired } from "@x402/core/schemas";
+import { isValidRouteTemplate, validateAndExtract, validateDiscoveryExtensionSpec } from "@x402/extensions/bazaar";
 
 const EVM_NETWORK = /^eip155:[1-9][0-9]*$/u;
 const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/u;
@@ -29,6 +30,17 @@ function acceptance(value, index) {
   return Object.freeze({ ...value, asset: value.asset === "native" ? "native" : value.asset.toLowerCase(), payTo: value.payTo.toLowerCase() });
 }
 
+function inspectBazaar(extension, method) {
+  if (extension === undefined) return;
+  if (extension === null || typeof extension !== "object" || Array.isArray(extension)) throw new TypeError("x402 Bazaar extension is malformed");
+  const spec = validateDiscoveryExtensionSpec(extension);
+  if (!spec.valid) throw new TypeError(`x402 Bazaar extension violates the protocol: ${spec.errors?.join("; ")}`);
+  const extracted = validateAndExtract(extension);
+  if (!extracted.valid || extracted.info === undefined) throw new TypeError(`x402 Bazaar extension violates its schema: ${extracted.errors?.join("; ")}`);
+  if (extracted.info.input.type !== "http" || extracted.info.input.method !== method) throw new TypeError("x402 Bazaar entry must describe the observed HTTP method");
+  if (extension.routeTemplate !== undefined && !isValidRouteTemplate(extension.routeTemplate)) throw new TypeError("x402 Bazaar routeTemplate is invalid");
+}
+
 /**
  * Inspect a public x402 v2 exact-EVM challenge without credentials, payment,
  * signing, settlement, redirect following, or consumption of the protected
@@ -51,5 +63,6 @@ export async function observePublicX402Resource({ resourceUrl, method = "GET", f
   try { paymentRequired = validatePaymentRequired(decodePaymentRequiredHeader(header)); } catch (error) { throw new Error(`payment-required header violates the official x402 schema: ${error instanceof Error ? error.message : String(error)}`); }
   if (paymentRequired.x402Version !== 2 || publicHttpsUrl(paymentRequired.resource.url) !== url || paymentRequired.accepts.length < 1 || paymentRequired.accepts.length > 32) throw new TypeError("x402 challenge is not an exact public v2 resource declaration");
   const normalized = stable({ ...paymentRequired, accepts: paymentRequired.accepts.map(acceptance) });
+  inspectBazaar(normalized.extensions?.bazaar, verb);
   return Object.freeze({ profile: "org.561-group.x402.public-resource-observation.v1", method: verb, resourceUrl: url, paymentRequired: normalized, observationDigest: ni({ method: verb, paymentRequired: normalized }), authority: Object.freeze({ publicReadOnly: true, paymentAttempted: false, signingAttempted: false, settlementAttempted: false, resourceBodyConsumed: false }) });
 }
