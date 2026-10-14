@@ -39,6 +39,8 @@ The caller supplies the route set, CAIP-2 network, price, payee and separately h
 
 The public-resource inspection helper deliberately requires a caller-supplied **egress-safe** fetch capability. It does not use ambient process network access to resolve or follow arbitrary Internet DNS; the hiring enterprise owns DNS, SSRF and network-egress policy at that boundary.
 
+Inspection validates the payment requirements with the official x402 schema and, when present, validates Bazaar metadata with the official discovery validators, including request method and colon-style route templates. A valid payment envelope with invalid discovery metadata refuses. The Express boundary registers the official Bazaar server extension so dynamic routes include concrete path parameters and a matching schema in their challenges.
+
 Before publicly marketing a service built with this library, independently verify its real challenge, observed payment network, accepted resource, settlement and receiver. A GitHub star, a publication URL or a local passing test is not evidence of a completed paid request.
 
 ## Public product and operated-node companion
