@@ -25,6 +25,30 @@ test("refuses implicit networks, custom schemes, credentials, and local observat
   for (const target of ["http://example.com", "https://user:pass@example.com", "https://localhost/value", "https://127.0.0.1/value", "https://[::1]/value"]) assert.throws(() => publicHttpsUrl(target), /public HTTPS DNS host/u);
 });
 
+test("the accepted network must equal the registered verifier network", () => {
+  const terms = { scheme: "exact", network: NETWORK, price: "$0.001", payTo: PAY_TO };
+  for (const accepts of [
+    [{ ...terms, network: "eip155:1" }],
+    [terms, { ...terms, network: "eip155:1" }],
+    [{ ...terms, network: undefined }],
+  ]) {
+    assert.throws(
+      () => createExactEvmPaymentBoundary({
+        network: NETWORK, facilitatorClient: facilitator,
+        routes: { "GET /value": { accepts } },
+      }),
+      /acceptance network must match registered/u,
+    );
+  }
+  assert.throws(
+    () => createExactEvmPaymentBoundary({
+      network: NETWORK, facilitatorClient: facilitator,
+      routes: { "GET /value": { accepts: [] } },
+    }),
+    /official x402 exact scheme/u,
+  );
+});
+
 test("refuses ambient network discovery without an explicit egress-safe provider", async () => {
   await assert.rejects(observePublicX402Resource({ resourceUrl: "https://example.com/value" }), /explicit egress-safe fetch implementation/u);
 });
