@@ -6,10 +6,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.mjs",
-    "./observe": "./src/observe-public-resource.mjs"
+    "./observe": "./src/observe-public-resource.mjs",
+    "./snapshot": "./src/discovery-snapshot.mjs"
   },
   "scripts": {
-    "check": "node --check src/index.mjs && node --check src/bazaar.mjs && node --check src/catalogue.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs && node --check test/bazaar.test.mjs && node --check test/catalogue.test.mjs && node --check test/observe-public-resource.test.mjs",
+    "check": "node --check src/index.mjs && node --check src/bazaar.mjs && node --check src/catalogue.mjs && node --check src/observe-public-resource.mjs && node --check test/index.test.mjs && node --check test/bazaar.test.mjs && node --check test/catalogue.test.mjs && node --check test/observe-public-resource.test.mjs && node --check src/discovery-snapshot.mjs && node --check test/discovery-snapshot.test.mjs",
     "test": "node --test",
     "verify": "npm run check && npm test"
   },
