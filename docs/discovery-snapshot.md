@@ -93,3 +93,19 @@ should write records anywhere; this PR adds the reader only.
 
 A runner, an on-chain Transfer reader, and a cross-check between them are plausible follow-ups. None
 is specified here: each needs its own field list, checkpoint format and schema before it is buildable.
+
+## Discovery response-shape compatibility (2026-10-17)
+
+The x402 v2 discovery list specification uses `items` while some Bazaar merchant
+listings return `resources`. The existing reader now consumes **either** list array
+through the same pure reducer and paginator. Missing, null, non-array, or
+simultaneous `items`/`resources` fields refuse instead of reporting zero offers.
+Explicit `partialResults: true` always makes a snapshot incomplete. A missing
+`pagination.total` also remains incomplete; cursor-only search is **not**
+misrepresented as an exhaustive offset-based merchant census. The injected fetch
+and payout checks remain unchanged, and a listing still cannot establish paid
+settlement or external buyer identity.
+
+Protocol references:
+- https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v2.md
+- https://github.com/x402-foundation/x402/blob/main/specs/extensions/bazaar.md

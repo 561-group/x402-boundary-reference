@@ -161,3 +161,36 @@ test("diff refuses snapshots of different merchants or endpoints", () => {
   assert.throws(() => diffSnapshots(a, { ...a, payTo: "0x" + "1".repeat(40) }), /different payTo/);
   assert.throws(() => diffSnapshots(a, { ...a, endpoint: "https://other.example.test/m" }), /different endpoints/);
 });
+
+test("official x402 discovery items use the existing common snapshot reducer", () => {
+  const page = base(); page.items = page.resources; delete page.resources;
+  const snap = taken([page], "2026-01-02T00:00:00Z");
+  assert.equal(snap.complete, true);
+  assert.equal(snap.totals.resources, 3);
+  assert.equal(snap.totals.calls30d, 3);
+});
+test("official items paginate with the existing fetch injection", async () => {
+  const all = base().resources;
+  const snap = await takeSnapshot(parameters, { fetchJson: async (url) => {
+    const offset = Number(new URL(url).searchParams.get("offset"));
+    return { items: offset === 0 ? all.slice(0, 2) : all.slice(2), pagination: {total:3}, payTo:PAY_TO };
+  }, now: () => new Date("2026-01-02T00:00:00Z") });
+  assert.equal(snap.complete, true);
+  assert.equal(snap.totals.resources, 3);
+});
+test("ambiguous or malformed pages cannot be misreported as zero inventory", () => {
+  for (const page of [{ pagination:{total:0} },{resources:null,pagination:{total:0}},
+    {resources:[],items:[],pagination:{total:0}},null]) {
+    assert.throws(() => taken([page], "2026-01-02T00:00:00Z"), /discovery page/);
+  }
+});
+test("explicit partial discovery results cannot become a complete census", () => {
+  const snap = taken([{ ...base(), partialResults:true }], "2026-01-02T00:00:00Z");
+  assert.equal(snap.complete, false);
+  assert.match(snap.problems.join(";"), /truncated/);
+});
+test("official items with a conflicting payout are still refused", () => {
+  const page = base(); page.items = page.resources; delete page.resources;
+  page.items[1].accepts[0].payTo = "0x" + "22".repeat(20);
+  assert.throws(() => taken([page], "2026-01-02T00:00:00Z"), /accepts payTo/);
+});

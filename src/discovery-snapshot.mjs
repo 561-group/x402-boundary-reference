@@ -78,6 +78,21 @@ export function resourceEntry(raw) {
   });
 }
 
+/** Accept official `items` and Bazaar `resources` without inventing an empty merchant. */
+function listedResources(page) {
+  if (page === null || typeof page !== "object" || Array.isArray(page)) {
+    throw new TypeError("discovery page must be an object");
+  }
+  const hasResources = Object.hasOwn(page, "resources");
+  const hasItems = Object.hasOwn(page, "items");
+  if (hasResources === hasItems) {
+    throw new TypeError("discovery page must declare exactly one resources or items array");
+  }
+  const entries = hasResources ? page.resources : page.items;
+  if (!Array.isArray(entries)) throw new TypeError("discovery page entries must be an array");
+  return entries;
+}
+
 /**
  * Build a dated snapshot record from the pages of a merchant listing.
  * A page (or an accepts entry) naming a different payTo is refused: it is not this merchant's data.
@@ -88,10 +103,11 @@ export function snapshotRecord({ parameters, pages, takenAt, notes = [] }) {
   const problems = [...notes];
   const seen = new Map();
   for (const page of pages) {
+    const entries = listedResources(page);
     if (page.payTo !== undefined && !same(page.payTo, payTo)) {
       throw new Error(`snapshotRecord: response payTo ${page.payTo} does not match requested payTo`);
     }
-    for (const raw of page.resources ?? []) {
+    for (const raw of entries) {
       for (const a of raw?.accepts ?? []) {
         if (a?.payTo !== undefined && !same(a.payTo, payTo)) {
           throw new Error(`snapshotRecord: accepts payTo for ${raw.resource} does not match requested payTo`);
@@ -105,6 +121,7 @@ export function snapshotRecord({ parameters, pages, takenAt, notes = [] }) {
   const resources = [...seen.values()].sort((a, b) => (a.resource < b.resource ? -1 : a.resource > b.resource ? 1 : 0));
   const declared = pages[0]?.pagination?.total ?? null;
   for (const [i, page] of pages.entries()) {
+    if (page.partialResults === true) problems.push(`discovery page ${i} reports truncated results`);
     const t = page.pagination?.total ?? null;
     if (t !== declared) problems.push(`pagination total changed at page ${i}: ${declared} -> ${t}`);
   }
@@ -140,7 +157,7 @@ export async function takeSnapshot(parameters, { fetchJson, now = () => new Date
   for (let i = 0; i < MAX_PAGES; i += 1) {
     const page = await fetchJson(merchantUrl(checked, offset));
     pages.push(page);
-    const got = page.resources?.length ?? 0;
+    const got = listedResources(page).length;
     const total = page.pagination?.total ?? 0;
     offset += got;
     if (offset >= total) { finished = true; break; }
